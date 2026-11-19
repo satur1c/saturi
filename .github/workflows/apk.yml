@@ -31,7 +31,15 @@ jobs:
             git commit -m "add signing key"
             git push
           fi
-      - run: cd android && chmod +x gradlew && ./gradlew assembleDebug
+      -       - run: |
+          mkdir -p ~/.gradle
+          cat > ~/.gradle/init.gradle <<'EOF'
+          allprojects {
+            buildscript.repositories.all { r -> if (r instanceof MavenArtifactRepository && r.url.toString().contains('maven.apache.org')) r.url = uri('https://maven-central.storage-download.googleapis.com/maven2/') }
+            repositories.all { r -> if (r instanceof MavenArtifactRepository && r.url.toString().contains('maven.apache.org')) r.url = uri('https://maven-central.storage-download.googleapis.com/maven2/') }
+          }
+          EOF
+          cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
           name: saturi-apk
